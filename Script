@@ -1,0 +1,139 @@
+#!/bin/bash
+
+## ======== Asking target to install what will be needed for next steps  =========
+
+#Colors are pure gimmick here with no use whatsoever
+
+Red='\033[0;31m'    
+Green='\033[0;32m'
+Color_Off='\033[0m'
+
+function tool_install
+{
+
+echo -e "\033[0;31mPlease enter name of required tool : \033[0m"
+
+read logiciel
+
+sudo apt install $logiciel
+
+}
+
+tool_install
+
+while [[ $yn -eq true ]] ; do
+    read -p "Do you wish to install another program [y/n]? " yn
+    case $yn in
+        [Yy]* ) tool_install; return;;
+        [Nn]* ) echo -e "\033[0;32mNo other program needed. Script will now continue. \033[0m"; break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
+# Little transition screen to make it looks cleaner
+
+echo =====
+read -t 1
+echo ====
+read -t 1
+echo ===
+read -t 1
+echo ==
+read -t 1
+echo =	
+read -t 1	
+
+
+## =========  IP check and anonymous connection  ==========
+
+function IP_check()
+{
+
+IP=$(curl ifconfig.me) 
+
+echo $IP
+
+country=$(whois $IP | sed -n 33p | awk '{print $2}')
+
+echo $country
+
+if [[ $country -eq "IL" ]] 
+then
+	echo -e "\033[0;31mIsraeli IP detected, access unauthorized \033[0m"
+	return
+else
+	echo -e "\033[0;32mAccess granted \033[0m"
+fi
+
+}
+
+
+
+## ========  Going anonymous mode; changing public IP location via tor and kalitorify  =========
+
+#Checking if tor is active, and stopping it if needed
+
+systemctl is-active tor >/dev/null 2>&1 && echo YES || echo NO
+
+if systemctl is-active tor >/dev/null 2>&1 && echo YES
+then
+	echo "Stopping tor" 
+	sudo service tor stop 
+else
+	echo tor is not active
+fi
+
+
+#Installing tor and kalitorify + lauching it in order to hide the public IP address
+
+sudo apt-get install tor
+
+sudo git clone https://github.com/brainfucksec/kalitorify.git
+
+cd kalitorify
+
+ls
+
+sudo make install
+
+sudo kalitorify -t
+
+read -t 5
+
+IP_check
+
+
+# Again, transition screen
+
+echo =====
+read -t 1
+echo ====
+read -t 1
+echo ===
+read -t 1
+echo ==
+read -t 1
+echo =	
+read -t 1	
+
+
+
+## ========= SSH connection and running commands on remote server  =========
+
+# I had two options there to avoid any password prompt. One was to go with
+# with the expect command, but I could not get it to work out well.
+# So I went with public ssh keys, i explained the whole process in the word 
+# document joined with this script.
+
+function SSH_connection()
+{
+
+ssh -i ~/.ssh/id_rsa 192.168.15.129 << EOF
+  nmap 192.168.15.129
+  whoami
+EOF
+
+}
+
+SSH_connection
+
