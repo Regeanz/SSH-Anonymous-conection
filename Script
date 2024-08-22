@@ -116,20 +116,13 @@ read -t 1
 echo =	
 read -t 1	
 
-
-
 ## ========= SSH connection and running commands on remote server  =========
-
-# I had two options there to avoid any password prompt. One was to go with
-# with the expect command, but I could not get it to work out well.
-# So I went with public ssh keys, i explained the whole process in the word 
-# document joined with this script.
 
 function SSH_connection()
 {
 
-ssh -i ~/.ssh/id_rsa 192.168.15.129 << EOF
-  nmap 192.168.15.129
+ssh -i ~/.ssh/id_rsa 192.168.0.1 << EOF
+  nmap 192.168.0.1
   whoami
 EOF
 
